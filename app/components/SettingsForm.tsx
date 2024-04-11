@@ -48,7 +48,7 @@ const {toast} = useToast()
         <div className="w-full flex mt-5 gap-x-5 justify-end">
         <Button asChild type="button" variant="secondary"><Link href="/">Cancel</Link></Button>
 
-        <SubmitButton/>
+        <SubmitButton text="Update"/>
       </div>
     </form>
   )
