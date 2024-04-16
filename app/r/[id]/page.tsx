@@ -1,9 +1,13 @@
 import { updateSubDescription } from '@/app/actions'
+import SubDescriptionForm from '@/app/components/SubDescriptionForm'
 import { SaveButton, SubmitButton } from '@/app/components/SubmitButtons'
 import prisma from '@/app/lib/db'
+import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server'
+import { Cake } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
@@ -46,14 +50,25 @@ const SubRedditPage = async ({params}: {params: {id: string}}) => {
             <Link href={`/r/${data?.name}`} className='font-medium'>r/{data?.name}</Link>
         </div>
         {user?.id === data?.userId ? (
-          <form action={updateSubDescription} className='mt-3'>
-            <input type="hidden" name='subName' value={params.id} />
-            <Textarea placeholder='Create your description for this subreddit' maxLength={100} name='description'/>
-            <SaveButton/>
-          </form>
+         <SubDescriptionForm subName={params.id} description={data?.description}/>
         ) : (
         <p className='text-sm font-normal text-secondary-foreground mt-2'>{data?.description}</p>
         )}
+
+          <div className='flex items-center gap-x-2 mt-4'>
+            <Cake className='h-5 w-5 text-muted-foreground'/>
+              <p className='text-muted-foreground font-medium text-sm'>Criado: {data?.createdAt ? data.createdAt.toLocaleDateString('pt-BR', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+              }) : ''}</p>
+          </div>
+
+          <Separator className='my-5'/>
+          <Button asChild className='rounded-full w-full'>
+              <Link href={user?.id ? `/r/${data?.name}/create` : '/api/auth/login'}>Criar Post</Link>
+          </Button>
         </div>
     </Card>
     </div>

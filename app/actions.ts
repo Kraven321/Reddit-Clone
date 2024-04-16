@@ -4,6 +4,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
 import { redirect } from "next/navigation"
 import prisma from "./lib/db"
 import { Prisma } from "@prisma/client"
+import { JSONContent } from "@tiptap/react"
 
 
 
@@ -78,7 +79,7 @@ export async function updateUserName(prevState: any ,formData: FormData) {
    }
  }
 
- export async function updateSubDescription (formData: FormData) {
+ export async function updateSubDescription (state:{ status: string; message: string} | undefined ,formData: FormData) {
     const {getUser} = getKindeServerSession()
     const user = await getUser()
 
@@ -86,7 +87,8 @@ export async function updateUserName(prevState: any ,formData: FormData) {
         return redirect("/api/auth/login")
     }
 
-    const subName = formData.get("subName") as string
+    try {
+        const subName = formData.get("subName") as string
     const description = formData.get("description") as string
 
     await prisma.subreddit.update({
@@ -97,4 +99,42 @@ export async function updateUserName(prevState: any ,formData: FormData) {
             description: description
         }
     })
+
+    return {
+        message:"Descrição atualizada com sucesso!",
+        status:"green"
+    }
+    } catch (error) {
+        return {
+            message: "Ops... Ocorreu um erro!",
+            status:"error"
+        }
+    }
+ }
+
+
+ export async function createPost ({jsonContent} : {jsonContent: JSONContent | null}, formData: FormData) {
+    const {getUser} = getKindeServerSession()
+    const user = await getUser()
+
+    if(!user) {
+        return redirect("/api/auth/login")
+    }
+
+    const title = formData.get('title') as string;
+    const imageUrl = formData.get('imageUrl') as string || null;
+    const subName = formData.get('subName') as string;
+
+    await prisma.post.create({
+        data: {
+            title: title,
+            imageString: imageUrl ?? undefined,
+            subName: subName,
+            userId: user.id,
+            textContent: jsonContent ?? undefined,
+
+        }
+    });
+
+    return redirect('/')
  }
