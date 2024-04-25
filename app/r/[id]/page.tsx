@@ -1,4 +1,6 @@
 import { updateSubDescription } from '@/app/actions'
+import CreatePostCard from '@/app/components/CreatePostCard'
+import PostCard from '@/app/components/PostCard'
 import SubDescriptionForm from '@/app/components/SubDescriptionForm'
 import { SaveButton, SubmitButton } from '@/app/components/SubmitButtons'
 import prisma from '@/app/lib/db'
@@ -21,7 +23,26 @@ async function getData (name: string) {
       name: true,
       createdAt: true,
       description: true,
-      userId: true
+      userId: true,
+      posts: {
+        select: {
+          title: true,
+          textContent: true,
+          imageString: true,
+          id: true,
+          Vote: {
+            select: {
+              userId: true,
+              voteType: true
+            }
+          },
+          User: {
+            select: {
+              userName: true
+            }
+          }
+        }
+      }
     }
   })
 
@@ -35,7 +56,25 @@ const SubRedditPage = async ({params}: {params: {id: string}}) => {
   return (
     <div className='max-w-[1200px] mx-auto flex gap-x-20' mt-4>
     <div className='w-[65%] flex flex-col gap-y-5'>
-        <h1>Hello from the subreddit post</h1>
+        <CreatePostCard/>
+
+        {data?.posts.map((post)=>(
+          <PostCard
+          key={post.id}
+          title={post.title}
+          userName={post.User?.userName as string}
+          id={post.id}
+          imageString={post.imageString}
+          subName={data.name}
+          jsonContent={post.textContent}
+          voteCount={post.Vote.reduce((acc, vote)=>{
+            if(vote.voteType === "UP") return acc + 1
+            if(vote.voteType === "DOWN") return acc - 1
+    
+            return acc
+          }, 0)}
+          />
+        ))}
     </div>
 
     <div className='w-[35%]'>

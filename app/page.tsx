@@ -8,10 +8,17 @@ import Link from "next/link";
 import CreatePostCard from "./components/CreatePostCard";
 import prisma from "./lib/db";
 import PostCard from "./components/PostCard";
+import { Suspense } from "react";
+import Pagination from "./components/Pagination";
 
-async function getData() {
-  const data = await prisma.post.findMany({
+async function getData(searchParams: string) {
+ const [count, data] = await prisma.$transaction([
+  prisma.post.count(),
+   prisma.post.findMany({
+    take: 10,
+    skip: searchParams ? (Number(searchParams) - 1) * 10 : 0,
     select: {
+      Vote: true,
       title: true,
       createdAt: true,
       textContent: true,
@@ -22,22 +29,24 @@ async function getData() {
           userName: true
         }
       },
-      subName: true
+      subName: true,
+    },
+    orderBy: {
+      createdAt: "desc"
     }
   })
-
-  return data
+ ]);
+  return {count, data}
 }
 
-export default async function Home() {
-  const data = await getData()
+export default function Home({searchParams} : {searchParams : {page: string}}) {
   return (
    <div className="max-w-[1000px] mx-auto flex gap-x-10 mt-4">
     <div className="w-[65%] flex flex-col gap-y-5">
     <CreatePostCard/>
-    {data.map((post)=>(
-      <PostCard id={post.id} imageString={post.imageString} jsonContent={post.textContent} subName={post.subName as string} title={post.title} userName={post.User?.userName as string} key={post.id}/>
-    ))}
+    <Suspense fallback={<p>Opa, calma que ta carregando...</p>}>
+    <ShowItems searchParams={searchParams}/>
+    </Suspense>
     </div>
     <div className="w-[35%]">
     <Card>
@@ -64,4 +73,23 @@ export default async function Home() {
     
    </div>
   );
+}
+
+async function ShowItems ({searchParams} : {searchParams : {page: string}}) {
+  const {count, data} = await getData(searchParams.page)
+  return (
+    <>
+    {data.map((post)=>(
+      <PostCard id={post.id} imageString={post.imageString} jsonContent={post.textContent} subName={post.subName as string} title={post.title} userName={post.User?.userName as string} key={post.id}
+       voteCount={post.Vote.reduce((acc, vote)=>{
+        if(vote.voteType === "UP") return acc + 1
+        if(vote.voteType === "DOWN") return acc - 1
+
+        return acc
+      }, 0)}
+      />
+    ))}
+    <Pagination totalPages={Math.ceil(count / 10)}/>
+    </>
+  )
 }
