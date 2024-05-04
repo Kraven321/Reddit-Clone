@@ -1,5 +1,6 @@
 import { updateSubDescription } from '@/app/actions'
 import CreatePostCard from '@/app/components/CreatePostCard'
+import Pagination from '@/app/components/Pagination'
 import PostCard from '@/app/components/PostCard'
 import SubDescriptionForm from '@/app/components/SubDescriptionForm'
 import { SaveButton, SubmitButton } from '@/app/components/SubmitButtons'
@@ -14,53 +15,69 @@ import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
 
-async function getData (name: string) {
-  const data = await prisma.subreddit.findUnique({
-    where: {
-      name: name
-    },
-    select: {
-      name: true,
-      createdAt: true,
-      description: true,
-      userId: true,
-      posts: {
-        select: {
-          title: true,
-          textContent: true,
-          imageString: true,
-          id: true,
-          Vote: {
-            select: {
-              userId: true,
-              voteType: true
-            }
-          },
-          User: {
-            select: {
-              userName: true
+async function getData (name: string, searchParams: string) {
+  const [count, data] = await prisma.$transaction([
+    prisma.post.count({
+      where: {
+        subName: name
+      }
+    }),
+
+    prisma.subreddit.findUnique({
+      where: {
+        name: name
+      },
+      select: {
+        name: true,
+        createdAt: true,
+        description: true,
+        userId: true,
+        posts: {
+          take: 10,
+          skip: searchParams ? (Number(searchParams) - 1) * 10 : 0,
+          select: {
+            Comment: {
+              select: {
+                id: true
+              }
+            },
+            title: true,
+            textContent: true,
+            imageString: true,
+            id: true,
+            Vote: {
+              select: {
+                userId: true,
+                voteType: true
+              }
+            },
+            User: {
+              select: {
+                userName: true
+              }
             }
           }
         }
       }
-    }
-  })
+    })
+  ])
 
-  return data
+  return {data, count}
   }
 
-const SubRedditPage = async ({params}: {params: {id: string}}) => {
-  const data = await getData(params.id)
+const SubRedditPage = async ({params, searchParams} : {params: {id: string}, searchParams: {rola: string}}) => {
+  const {data, count} = await getData(params.id, searchParams.rola)
   const {getUser} = getKindeServerSession()
   const user = await getUser()
   return (
-    <div className='max-w-[1200px] mx-auto flex gap-x-20' mt-4>
+    <div className='max-w-[1200px] mx-auto flex gap-x-20 mt-4 mb-10'>
     <div className='w-[65%] flex flex-col gap-y-5'>
         <CreatePostCard/>
 
         {data?.posts.map((post)=>(
           <PostCard
           key={post.id}
+          commentAmount={post.Comment.length}
           title={post.title}
           userName={post.User?.userName as string}
           id={post.id}
@@ -75,6 +92,8 @@ const SubRedditPage = async ({params}: {params: {id: string}}) => {
           }, 0)}
           />
         ))}
+
+        <Pagination totalPages={Math.ceil(count / 10)}/>
     </div>
 
     <div className='w-[35%]'>

@@ -20,11 +20,12 @@ model User {
   firstName         String
   lastName          String
   imageUrl          String?
-  userName          String      @unique
+  userName          String?     @unique
   createdSubreddits Subreddit[]
 
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   Vote      Vote[]
+  Comment   Comment[]
 
   posts Post[]
 }
@@ -47,13 +48,13 @@ model Post {
   textContent Json?
   imageString String?
 
-  Vote Vote[]
+  Vote    Vote[]
+  Comment Comment[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   Subreddit Subreddit? @relation(fields: [subName], references: [name])
-  subName   String
+  subName   String?
   User      User?      @relation(fields: [userId], references: [id])
   userId    String?
 }
@@ -66,10 +67,21 @@ enum TypeOfVote {
 model Vote {
   id String @id @default(uuid())
 
-  post   Post?   @relation(fields: [postId], references: [id])
-  postId String
+  Post   Post?   @relation(fields: [postId], references: [id])
+  postId String?
   User   User?   @relation(fields: [userId], references: [id])
   userId String?
 
   voteType TypeOfVote
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  text      String
+  createdAt DateTime @default(now())
+
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String?
+  Post   Post?   @relation(fields: [postId], references: [id])
+  postId String?
 }

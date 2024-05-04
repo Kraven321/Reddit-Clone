@@ -24,6 +24,12 @@ async function getData(searchParams: string) {
       textContent: true,
       id: true,
       imageString: true,
+      Comment: {
+        select: {
+          id: true,
+
+        }
+      },
       User: {
         select: {
           userName: true
@@ -87,6 +93,7 @@ async function ShowItems ({searchParams} : {searchParams : {page: string}}) {
 
         return acc
       }, 0)}
+      commentAmount={post.Comment.length}
       />
     ))}
     <Pagination totalPages={Math.ceil(count / 10)}/>
