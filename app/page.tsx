@@ -10,7 +10,7 @@ import prisma from "./lib/db";
 import PostCard from "./components/PostCard";
 import { Suspense } from "react";
 import Pagination from "./components/Pagination";
-import {unstable_noStore as noStore} from "next/cache"
+import {unstable_noStore as noStore} from "next/cache" //RESOLVEU O PROBLEMA DE PRERENDERING PAGE QUE O PRISMA CAUSA
 
 async function getData(searchParams: string) {
   noStore();

@@ -2,7 +2,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server"
 import prisma from "../lib/db"
 import { redirect } from "next/navigation"
 import SettingsForm from "../components/SettingsForm"
-import {unstable_noStore as noStore} from "next/cache"
+import {unstable_noStore as noStore} from "next/cache" //RESOLVEU O PROBLEMA DE PRERENDERING PAGE QUE O PRISMA CAUSA
 
 async function getData(userId: string) {
   noStore();

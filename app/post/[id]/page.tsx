@@ -11,7 +11,7 @@ import { Cake, MessageCircle } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import {unstable_noStore as noStore} from "next/cache"
+import {unstable_noStore as noStore} from "next/cache" //RESOLVEU O PROBLEMA DE PRERENDERING PAGE QUE O PRISMA CAUSA
 async function getData(id: string) {
     noStore();
     const data = await prisma.post.findUnique({

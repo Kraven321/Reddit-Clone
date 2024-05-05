@@ -14,7 +14,7 @@ import { Cake } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import React from 'react'
-import {unstable_noStore as noStore} from "next/cache"
+import {unstable_noStore as noStore} from "next/cache" //RESOLVEU O PROBLEMA DE PRERENDERING PAGE QUE O PRISMA CAUSA
 
 async function getData (name: string, searchParams: string) {
   noStore();
